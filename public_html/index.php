@@ -22,8 +22,10 @@ use App\Controllers\HomeController;
 use App\Controllers\LeadController;
 use App\Controllers\LeadExtensionController;
 use App\Controllers\LeadRoutingController;
+use App\Controllers\GoalController;
 use App\Controllers\OrderController;
 use App\Controllers\PaymentMethodController;
+use App\Controllers\PerformanceController;
 use App\Controllers\PricingTableController;
 use App\Controllers\ProductController;
 use App\Controllers\PublicLeadController;
@@ -104,5 +106,12 @@ $router->post('/material-de-venda/{id}/excluir', [SalesMaterialController::class
 $router->get('/config-pagamentos', [PaymentMethodController::class, 'index'], auth: true);
 $router->post('/config-pagamentos', [PaymentMethodController::class, 'store'], auth: true);
 $router->post('/config-pagamentos/{id}/excluir', [PaymentMethodController::class, 'destroy'], auth: true);
+
+$router->get('/vendedores', [PerformanceController::class, 'ranking'], auth: true);
+$router->get('/funil', [PerformanceController::class, 'funnel'], auth: true);
+
+$router->get('/metas', [GoalController::class, 'index'], auth: true);
+$router->post('/metas', [GoalController::class, 'store'], auth: true);
+$router->post('/metas/{id}/excluir', [GoalController::class, 'destroy'], auth: true);
 
 $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);

@@ -42,6 +42,9 @@ $categories = \App\Models\Product::categories();
             <a href="/orcamentos">🧾 Orçamentos</a>
             <a href="/pedidos">📦 Pedidos</a>
             <a href="/aprovacoes">✅ Aprovações</a>
+            <a href="/vendedores">🏆 Vendedores</a>
+            <a href="/funil">📊 Funil</a>
+            <a href="/metas">🎯 Metas</a>
             <a href="/calculadora">🧮 Calculadora</a>
             <a href="/material-de-venda">📁 Material</a>
             <?php if (in_array($currentUser['role'], ['admin', 'gerente', 'supervisor', 'licenciado', 'gestor'], true)): ?>

@@ -183,3 +183,13 @@ CREATE TABLE IF NOT EXISTS payment_methods (
     active TINYINT NOT NULL DEFAULT 1,
     created_at DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS goals (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    period VARCHAR(7) NOT NULL,
+    target_type VARCHAR(24) NOT NULL DEFAULT 'revenue',
+    target_value DECIMAL(14,2) NOT NULL,
+    created_by INT NOT NULL,
+    created_at DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

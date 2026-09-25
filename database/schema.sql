@@ -211,3 +211,15 @@ CREATE TABLE IF NOT EXISTS payment_methods (
     active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL
 );
+
+-- Metas: meta mensal de um usuário (receita ou nº de pedidos), atribuída por
+-- quem está acima dele na hierarquia (ou por ele mesmo).
+CREATE TABLE IF NOT EXISTS goals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    period TEXT NOT NULL, -- 'AAAA-MM'
+    target_type TEXT NOT NULL DEFAULT 'revenue', -- revenue | orders_count
+    target_value REAL NOT NULL,
+    created_by INTEGER NOT NULL REFERENCES users(id),
+    created_at TEXT NOT NULL
+);
