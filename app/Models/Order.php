@@ -113,4 +113,53 @@ class Order
             ->prepare('UPDATE orders SET status = ? WHERE id = ?')
             ->execute([$status, $id]);
     }
+
+    /** "Acompanhar a entrega" */
+    public static function updateDelivery(int $id, string $trackingCode, string $deliveryStatus): void
+    {
+        $deliveredAt = $deliveryStatus === 'entregue' ? date('Y-m-d H:i:s') : null;
+
+        Database::connection()->prepare(
+            'UPDATE orders SET tracking_code = ?, delivery_status = ?, delivered_at = COALESCE(?, delivered_at) WHERE id = ?'
+        )->execute([$trackingCode, $deliveryStatus, $deliveredAt, $id]);
+
+        if ($deliveryStatus === 'entregue') {
+            self::updateStatus($id, 'entregue');
+        }
+    }
+
+    /** "Pós-venda de instalação" */
+    public static function updateInstallation(int $id, string $status, ?string $date, ?string $notes): void
+    {
+        Database::connection()->prepare(
+            'UPDATE orders SET installation_status = ?, installation_date = ?, installation_notes = ? WHERE id = ?'
+        )->execute([$status, $date ?: null, $notes, $id]);
+    }
+
+    public static function documents(int $orderId): array
+    {
+        $stmt = Database::connection()->prepare(
+            'SELECT d.*, u.name AS uploaded_by_name
+             FROM order_documents d JOIN users u ON u.id = d.uploaded_by
+             WHERE d.order_id = ? ORDER BY d.created_at DESC'
+        );
+        $stmt->execute([$orderId]);
+        return $stmt->fetchAll();
+    }
+
+    public static function addDocument(int $orderId, int $uploadedBy, string $name, ?string $filePath): int
+    {
+        Database::connection()->prepare(
+            'INSERT INTO order_documents (order_id, uploaded_by, name, file_path, created_at) VALUES (?, ?, ?, ?, ?)'
+        )->execute([$orderId, $uploadedBy, $name, $filePath, date('Y-m-d H:i:s')]);
+
+        return (int) Database::connection()->lastInsertId();
+    }
+
+    public static function decideDocument(int $documentId, string $status, int $decidedBy): void
+    {
+        Database::connection()->prepare(
+            'UPDATE order_documents SET status = ?, decided_by = ?, decided_at = ? WHERE id = ?'
+        )->execute([$status, $decidedBy, date('Y-m-d H:i:s'), $documentId]);
+    }
 }

@@ -43,11 +43,13 @@ $categories = \App\Models\Product::categories();
             <a href="/pedidos">📦 Pedidos</a>
             <a href="/aprovacoes">✅ Aprovações</a>
             <a href="/calculadora">🧮 Calculadora</a>
+            <a href="/material-de-venda">📁 Material</a>
             <?php if (in_array($currentUser['role'], ['admin', 'gerente', 'supervisor', 'licenciado', 'gestor'], true)): ?>
                 <a href="/minha-equipe">👥 Minha Equipe</a>
             <?php endif; ?>
             <?php if (in_array($currentUser['role'], ['admin', 'gerente'], true)): ?>
                 <a href="/tabela-precos">💲 Tabela de preços</a>
+                <a href="/config-pagamentos">💳 Pagamentos</a>
             <?php endif; ?>
             <a href="/catalogo">🔋 Catálogo</a>
         </div>

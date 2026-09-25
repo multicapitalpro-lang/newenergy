@@ -23,10 +23,12 @@ use App\Controllers\LeadController;
 use App\Controllers\LeadExtensionController;
 use App\Controllers\LeadRoutingController;
 use App\Controllers\OrderController;
+use App\Controllers\PaymentMethodController;
 use App\Controllers\PricingTableController;
 use App\Controllers\ProductController;
 use App\Controllers\PublicLeadController;
 use App\Controllers\QuoteController;
+use App\Controllers\SalesMaterialController;
 use App\Controllers\TeamController;
 use App\Core\Config;
 use App\Core\Router;
@@ -52,8 +54,12 @@ $router->post('/minha-equipe/supervisores', [TeamController::class, 'storeSuperv
 $router->post('/minha-equipe/atribuir-supervisor', [TeamController::class, 'assignSupervisor'], auth: true);
 
 $router->get('/pedidos', [OrderController::class, 'index'], auth: true);
-$router->get('/pedidos/{id}', [OrderController::class, 'show'], auth: true);
 $router->post('/pedidos', [OrderController::class, 'store'], auth: true);
+$router->post('/pedidos/{id}/entrega', [OrderController::class, 'updateDelivery'], auth: true);
+$router->post('/pedidos/{id}/instalacao', [OrderController::class, 'updateInstallation'], auth: true);
+$router->post('/pedidos/{id}/documentos', [OrderController::class, 'uploadDocument'], auth: true);
+$router->post('/pedidos/{orderId}/documentos/{docId}/decidir', [OrderController::class, 'decideDocument'], auth: true);
+$router->get('/pedidos/{id}', [OrderController::class, 'show'], auth: true);
 
 $router->get('/contato', [PublicLeadController::class, 'show']);
 $router->post('/contato', [PublicLeadController::class, 'store']);
@@ -90,5 +96,13 @@ $router->post('/aprovacoes/{id}/decidir', [ApprovalController::class, 'decide'],
 
 $router->get('/tabela-precos', [PricingTableController::class, 'index'], auth: true);
 $router->post('/tabela-precos/{id}', [PricingTableController::class, 'update'], auth: true);
+
+$router->get('/material-de-venda', [SalesMaterialController::class, 'index'], auth: true);
+$router->post('/material-de-venda', [SalesMaterialController::class, 'store'], auth: true);
+$router->post('/material-de-venda/{id}/excluir', [SalesMaterialController::class, 'destroy'], auth: true);
+
+$router->get('/config-pagamentos', [PaymentMethodController::class, 'index'], auth: true);
+$router->post('/config-pagamentos', [PaymentMethodController::class, 'store'], auth: true);
+$router->post('/config-pagamentos/{id}/excluir', [PaymentMethodController::class, 'destroy'], auth: true);
 
 $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);

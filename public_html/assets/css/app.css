@@ -191,6 +191,11 @@ table.simple th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text
 .badge-status.entregue { background: #d1e7dd; color: #0f5132; }
 .badge-status.cancelado { background: #f8d7da; color: #842029; }
 .badge-status.novo { background: #cfe2ff; color: #084298; }
+.badge-status.aguardando { background: #fff3cd; color: #856404; }
+.badge-status.em_transito { background: #cfe2ff; color: #084298; }
+.badge-status.nao_iniciada { background: #e4e6e8; color: #4a4b4e; }
+.badge-status.agendada { background: #fff3cd; color: #856404; }
+.badge-status.concluida { background: #d1e7dd; color: #0f5132; }
 .badge-status.contatado { background: #fff3cd; color: #856404; }
 .badge-status.convertido { background: #d1e7dd; color: #0f5132; }
 .badge-status.descartado { background: #f8d7da; color: #842029; }

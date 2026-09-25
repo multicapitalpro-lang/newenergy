@@ -46,7 +46,88 @@ class OrderController
             'user' => $user,
             'order' => $order,
             'items' => Order::items((int) $id),
+            'documents' => Order::documents((int) $id),
         ], 'loja');
+    }
+
+    /** "Acompanhar a entrega" */
+    public function updateDelivery(string $id): void
+    {
+        Auth::requireRole(Roles::MANAGEMENT);
+
+        if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
+            Router::redirect('/pedidos/' . $id);
+        }
+
+        $status = $_POST['delivery_status'] ?? 'aguardando';
+        if (in_array($status, ['aguardando', 'em_transito', 'entregue'], true)) {
+            Order::updateDelivery((int) $id, trim($_POST['tracking_code'] ?? ''), $status);
+        }
+
+        Router::redirect('/pedidos/' . $id);
+    }
+
+    /** "Pós-venda de instalação" */
+    public function updateInstallation(string $id): void
+    {
+        Auth::requireRole(Roles::MANAGEMENT);
+
+        if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
+            Router::redirect('/pedidos/' . $id);
+        }
+
+        $status = $_POST['installation_status'] ?? 'nao_iniciada';
+        if (in_array($status, ['nao_iniciada', 'agendada', 'concluida'], true)) {
+            Order::updateInstallation((int) $id, $status, trim($_POST['installation_date'] ?? ''), trim($_POST['installation_notes'] ?? ''));
+        }
+
+        Router::redirect('/pedidos/' . $id);
+    }
+
+    /** "Aprovar documentos" */
+    public function uploadDocument(string $id): void
+    {
+        $user = Auth::requireRole(Roles::ALL);
+
+        if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
+            Router::redirect('/pedidos/' . $id);
+        }
+
+        $name = trim($_POST['name'] ?? '');
+        if ($name === '') {
+            Router::redirect('/pedidos/' . $id);
+        }
+
+        $filePath = null;
+        if (!empty($_FILES['file']['name']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+            $dir = BASE_PATH . '/public_html/uploads/documents';
+            if (!is_dir($dir)) {
+                mkdir($dir, 0777, true);
+            }
+            $filename = uniqid('doc_') . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $_FILES['file']['name']);
+            move_uploaded_file($_FILES['file']['tmp_name'], $dir . '/' . $filename);
+            $filePath = '/uploads/documents/' . $filename;
+        }
+
+        Order::addDocument((int) $id, (int) $user['id'], $name, $filePath);
+
+        Router::redirect('/pedidos/' . $id);
+    }
+
+    public function decideDocument(string $orderId, string $docId): void
+    {
+        $user = Auth::requireRole(Roles::MANAGEMENT);
+
+        if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
+            Router::redirect('/pedidos/' . $orderId);
+        }
+
+        $decision = $_POST['decision'] ?? '';
+        if (in_array($decision, ['aprovado', 'recusado'], true)) {
+            Order::decideDocument((int) $docId, $decision, (int) $user['id']);
+        }
+
+        Router::redirect('/pedidos/' . $orderId);
     }
 
     public function store(): void

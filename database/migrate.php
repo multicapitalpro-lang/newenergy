@@ -82,4 +82,22 @@ if ($productCount === 0) {
     echo "Catálogo de exemplo (5 produtos, espelhando a Viva Bess) criado.\n";
 }
 
+// Formas de pagamento de exemplo (número real do parcelamento BTG mencionado
+// na reunião de kickoff -- os outros são só pra popular a tela).
+$paymentMethodCount = (int) $pdo->query('SELECT COUNT(*) FROM payment_methods')->fetchColumn();
+if ($paymentMethodCount === 0) {
+    $methods = [
+        ['Cartão de crédito — BTG', 'Parcelamento facilitado via maquininha, sem custo adicional.', 21, 0],
+        ['Boleto à vista', 'Pagamento único, sem juros.', 1, 0],
+        ['Financiamento bancário', 'Sob consulta, conforme aprovação de crédito do cliente.', 48, 1.99],
+    ];
+    foreach ($methods as [$name, $desc, $installments, $rate]) {
+        $pdo->prepare(
+            "INSERT INTO payment_methods (name, description, max_installments, interest_rate_percent, active, created_at)
+             VALUES (?, ?, ?, ?, 1, ?)"
+        )->execute([$name, $desc, $installments, $rate, date('Y-m-d H:i:s')]);
+    }
+    echo "Formas de pagamento de exemplo criadas.\n";
+}
+
 echo "Pronto.\n";
