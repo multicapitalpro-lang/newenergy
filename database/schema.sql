@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS products (
     markup_percent REAL, -- se nulo, usa default_markup_percent do config
     datasheet_path TEXT,
     image_path TEXT,
+    capacity_kwh REAL, -- capacidade de armazenamento, usada pela Calculadora pra recomendar produto
     active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL
 );
@@ -111,12 +112,58 @@ CREATE TABLE IF NOT EXISTS lead_routing_settings (
     fallback_user_id INTEGER REFERENCES users(id)
 );
 
+-- Orçamento: Lead/Cliente -> itens com preço -> aprovado -> vira Pedido.
+-- Mesma ideia do Quote/QuoteItem do EcoDiffusore.
+CREATE TABLE IF NOT EXISTS quotes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER NOT NULL REFERENCES clients(id),
+    seller_id INTEGER NOT NULL REFERENCES users(id),
+    status TEXT NOT NULL DEFAULT 'aberto', -- aberto | aguardando_aprovacao | aprovado | recusado | convertido
+    discount_percent REAL NOT NULL DEFAULT 0,
+    total_cents INTEGER NOT NULL DEFAULT 0, -- já com desconto aplicado
+    converted_order_id INTEGER REFERENCES orders(id),
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS quote_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    quote_id INTEGER NOT NULL REFERENCES quotes(id),
+    product_id INTEGER NOT NULL REFERENCES products(id),
+    quantity INTEGER NOT NULL,
+    unit_price_cents INTEGER NOT NULL,
+    subtotal_cents INTEGER NOT NULL
+);
+
+-- Liberação de preço: quando o desconto do orçamento passa do limite do
+-- papel de quem criou (ver App\Core\DiscountLimits), fica pendente aqui até
+-- Licenciado/Gestor/admin aprovar. approvable_type existe pra poder reusar
+-- essa tabela com Pedidos no futuro, igual ao polimorfismo do EcoDiffusore.
+CREATE TABLE IF NOT EXISTS approvals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    approvable_type TEXT NOT NULL DEFAULT 'quote',
+    approvable_id INTEGER NOT NULL,
+    requested_discount_pct REAL NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pendente', -- pendente | aprovado | recusado
+    requested_by INTEGER NOT NULL REFERENCES users(id),
+    decided_by INTEGER REFERENCES users(id),
+    decided_at TEXT,
+    created_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     client_id INTEGER NOT NULL REFERENCES clients(id),
     seller_id INTEGER NOT NULL REFERENCES users(id), -- quem fechou a venda (licenciado ou vendedor)
     status TEXT NOT NULL DEFAULT 'pendente', -- pendente | confirmado | entregue | cancelado
     total_cents INTEGER NOT NULL DEFAULT 0,
+    -- Acompanhar a entrega
+    tracking_code TEXT,
+    delivery_status TEXT NOT NULL DEFAULT 'aguardando', -- aguardando | em_transito | entregue
+    delivered_at TEXT,
+    -- Pós-venda de instalação
+    installation_status TEXT NOT NULL DEFAULT 'nao_iniciada', -- nao_iniciada | agendada | concluida
+    installation_date TEXT,
+    installation_notes TEXT,
     created_at TEXT NOT NULL
 );
 
@@ -127,4 +174,40 @@ CREATE TABLE IF NOT EXISTS order_items (
     quantity INTEGER NOT NULL,
     unit_price_cents INTEGER NOT NULL, -- preço da New Energy (com markup) congelado no momento do pedido
     subtotal_cents INTEGER NOT NULL
+);
+
+-- Documentos anexados a um pedido (ex: contrato assinado, CNPJ do cliente)
+-- que precisam de aprovação antes da entrega seguir.
+CREATE TABLE IF NOT EXISTS order_documents (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_id INTEGER NOT NULL REFERENCES orders(id),
+    uploaded_by INTEGER NOT NULL REFERENCES users(id),
+    name TEXT NOT NULL,
+    file_path TEXT,
+    status TEXT NOT NULL DEFAULT 'pendente', -- pendente | aprovado | recusado
+    decided_by INTEGER REFERENCES users(id),
+    decided_at TEXT,
+    created_at TEXT NOT NULL
+);
+
+-- Material de venda: recursos que o admin disponibiliza pra rede toda.
+CREATE TABLE IF NOT EXISTS sales_materials (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT,
+    file_path TEXT,
+    link TEXT,
+    created_at TEXT NOT NULL
+);
+
+-- Configuração de pagamentos: formas de financiamento oferecidas ao cliente
+-- final (ex: BTG 21x sem juros, mencionado na reunião de kickoff).
+CREATE TABLE IF NOT EXISTS payment_methods (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    max_installments INTEGER NOT NULL DEFAULT 1,
+    interest_rate_percent REAL NOT NULL DEFAULT 0,
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL
 );

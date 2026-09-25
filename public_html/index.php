@@ -14,15 +14,19 @@ spl_autoload_register(function (string $class) {
     }
 });
 
+use App\Controllers\ApprovalController;
 use App\Controllers\AuthController;
+use App\Controllers\CalculatorController;
 use App\Controllers\ClientController;
 use App\Controllers\HomeController;
 use App\Controllers\LeadController;
 use App\Controllers\LeadExtensionController;
 use App\Controllers\LeadRoutingController;
 use App\Controllers\OrderController;
+use App\Controllers\PricingTableController;
 use App\Controllers\ProductController;
 use App\Controllers\PublicLeadController;
+use App\Controllers\QuoteController;
 use App\Controllers\TeamController;
 use App\Core\Config;
 use App\Core\Router;
@@ -69,5 +73,22 @@ $router->post('/leads/{id}/converter', [LeadController::class, 'convert'], auth:
 $router->get('/clientes', [ClientController::class, 'index'], auth: true);
 $router->get('/clientes/{id}', [ClientController::class, 'show'], auth: true);
 $router->post('/clientes/{id}/nota', [ClientController::class, 'addNote'], auth: true);
+
+$router->get('/calculadora', [CalculatorController::class, 'show']);
+$router->post('/calculadora', [CalculatorController::class, 'calculate']);
+
+$router->get('/orcamentos', [QuoteController::class, 'index'], auth: true);
+$router->get('/orcamentos/novo', [QuoteController::class, 'create'], auth: true);
+$router->post('/orcamentos', [QuoteController::class, 'store'], auth: true);
+$router->get('/orcamentos/{id}/proposta', [QuoteController::class, 'proposal'], auth: true);
+$router->post('/orcamentos/{id}/status', [QuoteController::class, 'updateStatus'], auth: true);
+$router->post('/orcamentos/{id}/converter', [QuoteController::class, 'convert'], auth: true);
+$router->get('/orcamentos/{id}', [QuoteController::class, 'show'], auth: true);
+
+$router->get('/aprovacoes', [ApprovalController::class, 'index'], auth: true);
+$router->post('/aprovacoes/{id}/decidir', [ApprovalController::class, 'decide'], auth: true);
+
+$router->get('/tabela-precos', [PricingTableController::class, 'index'], auth: true);
+$router->post('/tabela-precos/{id}', [PricingTableController::class, 'update'], auth: true);
 
 $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);

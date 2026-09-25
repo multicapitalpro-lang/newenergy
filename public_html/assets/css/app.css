@@ -195,6 +195,8 @@ table.simple th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text
 .badge-status.convertido { background: #d1e7dd; color: #0f5132; }
 .badge-status.descartado { background: #f8d7da; color: #842029; }
 .badge-status.aprovado { background: #d1e7dd; color: #0f5132; }
+.badge-status.aberto { background: #cfe2ff; color: #084298; }
+.badge-status.aguardando_aprovacao { background: #fff3cd; color: #856404; }
 .badge-status.recusado { background: #f8d7da; color: #842029; }
 
 .btn-link-danger { background: none; border: none; color: #b91c1c; text-decoration: underline; cursor: pointer; font-size: 0.82rem; padding: 0; }

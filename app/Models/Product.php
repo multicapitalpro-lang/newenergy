@@ -92,6 +92,37 @@ class Product
         return (int) Database::connection()->lastInsertId();
     }
 
+    /** "Tabela de preços": admin/gerente ajusta custo e markup de um produto. */
+    public static function updatePricing(int $id, int $costPriceCents, ?float $markupPercent, ?float $capacityKwh): void
+    {
+        Database::connection()
+            ->prepare('UPDATE products SET cost_price_cents = ?, markup_percent = ?, capacity_kwh = ? WHERE id = ?')
+            ->execute([$costPriceCents, $markupPercent, $capacityKwh, $id]);
+    }
+
+    /**
+     * Pra Calculadora: menor produto ativo (na categoria certa, se informada)
+     * com capacidade suficiente pra cobrir o necessário.
+     */
+    public static function smallestFitting(float $requiredKwh, ?string $category = null): ?array
+    {
+        $sql = 'SELECT * FROM products WHERE active = 1 AND capacity_kwh IS NOT NULL AND capacity_kwh >= :required';
+        $params = ['required' => $requiredKwh];
+
+        if ($category) {
+            $sql .= ' AND category = :category';
+            $params['category'] = $category;
+        }
+
+        $sql .= ' ORDER BY capacity_kwh ASC LIMIT 1';
+
+        $stmt = Database::connection()->prepare($sql);
+        $stmt->execute($params);
+        $product = $stmt->fetch();
+
+        return $product ? self::withSellPrice($product) : null;
+    }
+
     /**
      * Calcula o preço de venda da New Energy em cima do preço de distribuidor
      * da Viva Bess (cost_price_cents). É esse markup que é o ganho da SB New

@@ -39,9 +39,15 @@ $categories = \App\Models\Product::categories();
         <div class="category-bar internal-nav">
             <a href="/leads">📋 Leads</a>
             <a href="/clientes">👤 Clientes</a>
+            <a href="/orcamentos">🧾 Orçamentos</a>
             <a href="/pedidos">📦 Pedidos</a>
+            <a href="/aprovacoes">✅ Aprovações</a>
+            <a href="/calculadora">🧮 Calculadora</a>
             <?php if (in_array($currentUser['role'], ['admin', 'gerente', 'supervisor', 'licenciado', 'gestor'], true)): ?>
                 <a href="/minha-equipe">👥 Minha Equipe</a>
+            <?php endif; ?>
+            <?php if (in_array($currentUser['role'], ['admin', 'gerente'], true)): ?>
+                <a href="/tabela-precos">💲 Tabela de preços</a>
             <?php endif; ?>
             <a href="/catalogo">🔋 Catálogo</a>
         </div>
@@ -51,6 +57,7 @@ $categories = \App\Models\Product::categories();
             <?php foreach ($categories as $cat): ?>
                 <a href="/catalogo?categoria=<?= urlencode($cat) ?>"><?= View::e($cat) ?></a>
             <?php endforeach; ?>
+            <a href="/calculadora">Calculadora de economia</a>
             <a href="/contato">Fale com um especialista</a>
         </div>
     <?php endif; ?>

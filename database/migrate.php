@@ -64,19 +64,19 @@ if ($userCount === 0) {
 $productCount = (int) $pdo->query('SELECT COUNT(*) FROM products')->fetchColumn();
 if ($productCount === 0) {
     $products = [
-        // sku, viva_bess_sku, name, category, short_description, cost_price_cents
-        ['NE-ONE-5KWH', 'VB-ONE-5KWH', 'Only One 5kWh (All-in-One)', 'Residencial', 'Bateria residencial com inversor integrado — ideal pra backup e uso em horário de pico.', 1925000],
-        ['NE-ONE-10KWH', 'VB-ONE-10KWH', 'Only One 10kWh (All-in-One)', 'Residencial', 'Versão de maior capacidade da linha All-in-One, pra residências de alto consumo.', 3450000],
-        ['NE-COM-241', 'VB-COM-241', 'BESS 241 kWh', 'Comercial/Industrial', 'Solução de armazenamento pra pequenas indústrias e comércios — reduz conta de horário de pico.', 45800000],
-        ['NE-COM-261', 'VB-COM-261', 'BESS 261 kWh', 'Comercial/Industrial', 'Capacidade extra pra operações com maior demanda de energia.', 49900000],
-        ['NE-EV-CHARGER', 'VB-EV-CHARGER', 'Eletroposto + BESS (combo)', 'Eletropostos', 'Carregador de veículo elétrico com BESS de suporte — evita sobrecarga na rede local.', 68000000],
+        // sku, viva_bess_sku, name, category, short_description, cost_price_cents, capacity_kwh
+        ['NE-ONE-5KWH', 'VB-ONE-5KWH', 'Only One 5kWh (All-in-One)', 'Residencial', 'Bateria residencial com inversor integrado — ideal pra backup e uso em horário de pico.', 1925000, 5],
+        ['NE-ONE-10KWH', 'VB-ONE-10KWH', 'Only One 10kWh (All-in-One)', 'Residencial', 'Versão de maior capacidade da linha All-in-One, pra residências de alto consumo.', 3450000, 10],
+        ['NE-COM-241', 'VB-COM-241', 'BESS 241 kWh', 'Comercial/Industrial', 'Solução de armazenamento pra pequenas indústrias e comércios — reduz conta de horário de pico.', 45800000, 241],
+        ['NE-COM-261', 'VB-COM-261', 'BESS 261 kWh', 'Comercial/Industrial', 'Capacidade extra pra operações com maior demanda de energia.', 49900000, 261],
+        ['NE-EV-CHARGER', 'VB-EV-CHARGER', 'Eletroposto + BESS (combo)', 'Eletropostos', 'Carregador de veículo elétrico com BESS de suporte — evita sobrecarga na rede local.', 68000000, 60],
     ];
 
-    foreach ($products as [$sku, $vivaBessSku, $name, $category, $desc, $costCents]) {
+    foreach ($products as [$sku, $vivaBessSku, $name, $category, $desc, $costCents, $capacityKwh]) {
         $pdo->prepare(
-            "INSERT INTO products (sku, viva_bess_sku, name, category, short_description, cost_price_cents, image_path, active, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)"
-        )->execute([$sku, $vivaBessSku, $name, $category, $desc, $costCents, '/uploads/products/' . $sku . '.png', date('Y-m-d H:i:s')]);
+            "INSERT INTO products (sku, viva_bess_sku, name, category, short_description, cost_price_cents, capacity_kwh, image_path, active, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)"
+        )->execute([$sku, $vivaBessSku, $name, $category, $desc, $costCents, $capacityKwh, '/uploads/products/' . $sku . '.png', date('Y-m-d H:i:s')]);
     }
 
     echo "Catálogo de exemplo (5 produtos, espelhando a Viva Bess) criado.\n";
