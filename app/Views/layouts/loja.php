@@ -27,10 +27,6 @@ $categories = \App\Models\Product::categories();
 
         <div class="header-actions">
             <?php if ($currentUser): ?>
-                <a href="/pedidos">📦 Pedidos</a>
-                <?php if (in_array($currentUser['role'], ['admin', 'gerente', 'supervisor', 'licenciado', 'gestor'], true)): ?>
-                    <a href="/minha-equipe">👥 Minha Equipe</a>
-                <?php endif; ?>
                 <a href="/logout">Sair (<?= View::e($currentUser['name']) ?> · <?= View::e(\App\Core\Roles::label($currentUser['role'])) ?>)</a>
             <?php else: ?>
                 <a href="/login">👤 Entrar</a>
@@ -39,12 +35,25 @@ $categories = \App\Models\Product::categories();
         </div>
     </header>
 
-    <div class="category-bar">
-        <a href="/catalogo">Todos os produtos</a>
-        <?php foreach ($categories as $cat): ?>
-            <a href="/catalogo?categoria=<?= urlencode($cat) ?>"><?= View::e($cat) ?></a>
-        <?php endforeach; ?>
-    </div>
+    <?php if ($currentUser): ?>
+        <div class="category-bar internal-nav">
+            <a href="/leads">📋 Leads</a>
+            <a href="/clientes">👤 Clientes</a>
+            <a href="/pedidos">📦 Pedidos</a>
+            <?php if (in_array($currentUser['role'], ['admin', 'gerente', 'supervisor', 'licenciado', 'gestor'], true)): ?>
+                <a href="/minha-equipe">👥 Minha Equipe</a>
+            <?php endif; ?>
+            <a href="/catalogo">🔋 Catálogo</a>
+        </div>
+    <?php else: ?>
+        <div class="category-bar">
+            <a href="/catalogo">Todos os produtos</a>
+            <?php foreach ($categories as $cat): ?>
+                <a href="/catalogo?categoria=<?= urlencode($cat) ?>"><?= View::e($cat) ?></a>
+            <?php endforeach; ?>
+            <a href="/contato">Fale com um especialista</a>
+        </div>
+    <?php endif; ?>
 
     <?= $content() ?>
 

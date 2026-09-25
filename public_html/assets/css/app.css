@@ -190,5 +190,17 @@ table.simple th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text
 .badge-status.confirmado { background: #cfe2ff; color: #084298; }
 .badge-status.entregue { background: #d1e7dd; color: #0f5132; }
 .badge-status.cancelado { background: #f8d7da; color: #842029; }
+.badge-status.novo { background: #cfe2ff; color: #084298; }
+.badge-status.contatado { background: #fff3cd; color: #856404; }
+.badge-status.convertido { background: #d1e7dd; color: #0f5132; }
+.badge-status.descartado { background: #f8d7da; color: #842029; }
+.badge-status.aprovado { background: #d1e7dd; color: #0f5132; }
+.badge-status.recusado { background: #f8d7da; color: #842029; }
+
+.btn-link-danger { background: none; border: none; color: #b91c1c; text-decoration: underline; cursor: pointer; font-size: 0.82rem; padding: 0; }
+
+.notes-list { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
+.notes-list .note { background: var(--bg); border-radius: 6px; padding: 10px 12px; font-size: 0.85rem; }
+.notes-list .note .meta { color: var(--muted); font-size: 0.72rem; margin-bottom: 4px; }
 
 .site-footer { background: var(--navy); color: #cdd9e8; padding: 32px 24px; margin-top: 48px; font-size: 0.85rem; text-align: center; }

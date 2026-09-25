@@ -20,7 +20,8 @@ class AuthController
 
     public function login(): void
     {
-        $next = $_POST['next'] ?: '/';
+        $next = $_POST['next'] ?? '/';
+        $next = $next !== '' ? $next : '/';
 
         if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
             View::render('auth/login', ['error' => 'Sessão expirada, tente de novo.', 'next' => $next], null);

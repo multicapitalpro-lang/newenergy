@@ -49,7 +49,66 @@ CREATE TABLE IF NOT EXISTS clients (
     document TEXT,
     email TEXT,
     phone TEXT,
+    city TEXT,
+    state TEXT,
+    address TEXT,
+    converted_from_lead_id INTEGER REFERENCES leads(id),
     created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS client_notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER NOT NULL REFERENCES clients(id),
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    note TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+-- CRM: Leads. Ver App\Core\Roles / LeadController -- roteamento simplificado
+-- do GeoMatch do EcoDiffusore (sem geolocalização por enquanto: round robin
+-- por licenciado menos servido recentemente, depois vendedor dentro dele).
+CREATE TABLE IF NOT EXISTS leads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    phone TEXT,
+    email TEXT,
+    city TEXT,
+    state TEXT,
+    message TEXT,
+    source TEXT NOT NULL DEFAULT 'site', -- site | manual | indicacao | whatsapp
+    status TEXT NOT NULL DEFAULT 'novo', -- novo | contatado | convertido | descartado
+    assigned_to_user_id INTEGER REFERENCES users(id),
+    assigned_at TEXT,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS lead_notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lead_id INTEGER NOT NULL REFERENCES leads(id),
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    note TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+-- Pedido de extensão de prazo pra trabalhar um lead antes de ser considerado
+-- parado (a UI de "redistribuir leads parados" fica pra depois -- por ora
+-- só o fluxo de solicitar/aprovar/recusar existe).
+CREATE TABLE IF NOT EXISTS lead_extension_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lead_id INTEGER NOT NULL REFERENCES leads(id),
+    requested_by INTEGER NOT NULL REFERENCES users(id),
+    reason TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pendente', -- pendente | aprovado | recusado
+    decided_by INTEGER REFERENCES users(id),
+    decided_at TEXT,
+    created_at TEXT NOT NULL
+);
+
+-- Configuração de roteamento de leads (linha única, id=1). fallback_user_id é
+-- pra quem vai o lead quando não há licenciado/vendedor ativo elegível.
+CREATE TABLE IF NOT EXISTS lead_routing_settings (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    fallback_user_id INTEGER REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS orders (
