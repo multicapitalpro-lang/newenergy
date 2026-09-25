@@ -1,0 +1,9 @@
+/config/app.php
+/database/*.sqlite
+/public_html/uploads/*
+!/public_html/uploads/.gitkeep
+!/public_html/uploads/products/
+/scratch/*
+!/scratch/.gitkeep
+/vendor/
+.DS_Store
