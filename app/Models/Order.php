@@ -31,19 +31,28 @@ class Order
         return $stmt->fetchAll();
     }
 
-    /** Escopa por hierarquia: passe User::downlineIds($user['id']) do controller. */
-    public static function forSellerIds(array $sellerIds): array
+    /**
+     * Escopa por hierarquia: passe User::scopedIds($user) do controller.
+     * $sellerIds === null (caso do admin) = sem filtro, retorna tudo.
+     */
+    public static function forSellerIds(?array $sellerIds): array
     {
-        $placeholders = implode(',', array_fill(0, count($sellerIds), '?'));
-        $stmt = Database::connection()->prepare(
-            "SELECT o.*, c.name AS client_name, u.name AS seller_name
-             FROM orders o
-             JOIN clients c ON c.id = o.client_id
-             JOIN users u ON u.id = o.seller_id
-             WHERE o.seller_id IN ($placeholders)
-             ORDER BY o.created_at DESC"
-        );
-        $stmt->execute($sellerIds);
+        $sql = "SELECT o.*, c.name AS client_name, u.name AS seller_name
+                FROM orders o
+                JOIN clients c ON c.id = o.client_id
+                JOIN users u ON u.id = o.seller_id";
+        $params = [];
+
+        if ($sellerIds !== null) {
+            $placeholders = implode(',', array_fill(0, count($sellerIds), '?'));
+            $sql .= " WHERE o.seller_id IN ($placeholders)";
+            $params = $sellerIds;
+        }
+
+        $sql .= ' ORDER BY o.created_at DESC';
+
+        $stmt = Database::connection()->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 

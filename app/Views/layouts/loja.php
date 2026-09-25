@@ -28,10 +28,10 @@ $categories = \App\Models\Product::categories();
         <div class="header-actions">
             <?php if ($currentUser): ?>
                 <a href="/pedidos">📦 Pedidos</a>
-                <?php if (in_array($currentUser['role'], ['admin', 'licenciado'], true)): ?>
+                <?php if (in_array($currentUser['role'], ['admin', 'gerente', 'supervisor', 'licenciado', 'gestor'], true)): ?>
                     <a href="/minha-equipe">👥 Minha Equipe</a>
                 <?php endif; ?>
-                <a href="/logout">Sair (<?= View::e($currentUser['name']) ?>)</a>
+                <a href="/logout">Sair (<?= View::e($currentUser['name']) ?> · <?= View::e(\App\Core\Roles::label($currentUser['role'])) ?>)</a>
             <?php else: ?>
                 <a href="/login">👤 Entrar</a>
                 <a href="/cadastro" class="cta">Sou Licenciado</a>

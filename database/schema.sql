@@ -1,15 +1,18 @@
 -- Schema inicial do painel SB New Energy. Compatível com SQLite (dev local) e
 -- pensado pra migrar sem drama pra MySQL quando formos pra Hostinger.
--- Estrutura de papéis/hierarquia inspirada no painel EcoDiffusore (mesmo dono),
--- simplificada pra 2 níveis (Licenciado -> Vendedor) em vez dos 8 papéis de lá.
+-- Estrutura de papéis/hierarquia inspirada no painel EcoDiffusore (mesmo dono):
+-- 5 papéis de parceiro (Gerente/Supervisor/Licenciado/Gestor/Vendedor) + admin,
+-- com duas hierarquias independentes -- ver App\Core\Roles para a explicação
+-- completa de cada uma.
 
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'vendedor', -- 'admin' | 'licenciado' | 'vendedor'
-    manager_id INTEGER REFERENCES users(id), -- vendedor -> id do licenciado dono dele; licenciado/admin = NULL
+    role TEXT NOT NULL DEFAULT 'vendedor', -- admin | gerente | supervisor | licenciado | gestor | vendedor
+    manager_id INTEGER REFERENCES users(id), -- gestor/vendedor -> licenciado dono; supervisor -> gerente que cadastrou
+    supervisor_id INTEGER REFERENCES users(id), -- licenciado -> supervisor designado pra apoiar ele (atribuição separada do manager_id)
     company_name TEXT,
     document TEXT, -- CNPJ ou CPF
     phone TEXT,

@@ -16,18 +16,17 @@ class OrderController
 {
     public function index(): void
     {
-        $user = Auth::requireRole(Roles::SELLER_ROLES);
-        $sellerIds = $user['role'] === 'vendedor' ? [$user['id']] : User::downlineIds((int) $user['id']);
+        $user = Auth::requireRole(Roles::ALL);
 
         View::render('orders/index', [
             'user' => $user,
-            'orders' => Order::forSellerIds($sellerIds),
+            'orders' => Order::forSellerIds(User::scopedIds($user)),
         ], 'loja');
     }
 
     public function show(string $id): void
     {
-        $user = Auth::requireRole(Roles::SELLER_ROLES);
+        $user = Auth::requireRole(Roles::ALL);
         $order = Order::find((int) $id);
 
         if (!$order) {
@@ -36,8 +35,8 @@ class OrderController
             return;
         }
 
-        $sellerIds = $user['role'] === 'vendedor' ? [$user['id']] : User::downlineIds((int) $user['id']);
-        if (!in_array((int) $order['seller_id'], $sellerIds, true)) {
+        $scoped = User::scopedIds($user);
+        if ($scoped !== null && !in_array((int) $order['seller_id'], $scoped, true)) {
             http_response_code(403);
             require BASE_PATH . '/app/Views/errors/403.php';
             return;

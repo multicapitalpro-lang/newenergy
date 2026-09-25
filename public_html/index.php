@@ -39,6 +39,8 @@ $router->get('/logout', [AuthController::class, 'logout']);
 
 $router->get('/minha-equipe', [TeamController::class, 'index'], auth: true);
 $router->post('/minha-equipe', [TeamController::class, 'store'], auth: true);
+$router->post('/minha-equipe/supervisores', [TeamController::class, 'storeSupervisor'], auth: true);
+$router->post('/minha-equipe/atribuir-supervisor', [TeamController::class, 'assignSupervisor'], auth: true);
 
 $router->get('/pedidos', [OrderController::class, 'index'], auth: true);
 $router->get('/pedidos/{id}', [OrderController::class, 'show'], auth: true);

@@ -16,26 +16,46 @@ $pdo->exec($schema);
 
 echo ($isNew ? "Banco criado" : "Schema atualizado") . " em {$sqlitePath}\n";
 
-// Seed: admin + 1 licenciado de exemplo + 1 vendedor sob ele, só se vazio.
+// Seed: um exemplo de cada papel da hierarquia completa, só se vazio.
 $userCount = (int) $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
 if ($userCount === 0) {
+    $hash = password_hash('trocar123', PASSWORD_DEFAULT);
+    $now = date('Y-m-d H:i:s');
+
     $pdo->prepare(
         "INSERT INTO users (name, email, password_hash, role, company_name, created_at)
          VALUES (?, ?, ?, 'admin', 'SB New Energy', ?)"
-    )->execute(['Admin New Energy', 'admin@newenergy.local', password_hash('trocar123', PASSWORD_DEFAULT), date('Y-m-d H:i:s')]);
+    )->execute(['Admin New Energy', 'admin@newenergy.local', $hash, $now]);
 
     $pdo->prepare(
-        "INSERT INTO users (name, email, password_hash, role, company_name, document, created_at)
-         VALUES (?, ?, ?, 'licenciado', ?, ?, ?)"
-    )->execute(['Carlos Licenciado', 'licenciado@newenergy.local', password_hash('trocar123', PASSWORD_DEFAULT), 'Licenciado Demo LTDA', '12.345.678/0001-00', date('Y-m-d H:i:s')]);
+        "INSERT INTO users (name, email, password_hash, role, company_name, created_at)
+         VALUES (?, ?, ?, 'gerente', 'SB New Energy', ?)"
+    )->execute(['Gustavo Gerente', 'gerente@newenergy.local', $hash, $now]);
+    $gerenteId = (int) $pdo->lastInsertId();
+
+    $pdo->prepare(
+        "INSERT INTO users (name, email, password_hash, role, manager_id, company_name, created_at)
+         VALUES (?, ?, ?, 'supervisor', ?, 'SB New Energy', ?)"
+    )->execute(['Sandra Supervisora', 'supervisor@newenergy.local', $hash, $gerenteId, $now]);
+    $supervisorId = (int) $pdo->lastInsertId();
+
+    $pdo->prepare(
+        "INSERT INTO users (name, email, password_hash, role, supervisor_id, company_name, document, created_at)
+         VALUES (?, ?, ?, 'licenciado', ?, ?, ?, ?)"
+    )->execute(['Carlos Licenciado', 'licenciado@newenergy.local', $hash, $supervisorId, 'Licenciado Demo LTDA', '12.345.678/0001-00', $now]);
     $licenciadoId = (int) $pdo->lastInsertId();
 
     $pdo->prepare(
         "INSERT INTO users (name, email, password_hash, role, manager_id, created_at)
-         VALUES (?, ?, ?, 'vendedor', ?, ?)"
-    )->execute(['Ana Vendedora', 'vendedor@newenergy.local', password_hash('trocar123', PASSWORD_DEFAULT), $licenciadoId, date('Y-m-d H:i:s')]);
+         VALUES (?, ?, ?, 'gestor', ?, ?)"
+    )->execute(['Gabriel Gestor', 'gestor@newenergy.local', $hash, $licenciadoId, $now]);
 
-    echo "Usuários criados: admin@newenergy.local, licenciado@newenergy.local, vendedor@newenergy.local (todos / trocar123)\n";
+    $pdo->prepare(
+        "INSERT INTO users (name, email, password_hash, role, manager_id, created_at)
+         VALUES (?, ?, ?, 'vendedor', ?, ?)"
+    )->execute(['Ana Vendedora', 'vendedor@newenergy.local', $hash, $licenciadoId, $now]);
+
+    echo "Usuários criados (todos / trocar123): admin, gerente, supervisor, licenciado, gestor, vendedor @newenergy.local\n";
 }
 
 // Catálogo espelhando os produtos da Viva Bess (cost_price_cents = preço de
