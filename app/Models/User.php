@@ -31,8 +31,8 @@ class User
     public static function create(array $data): int
     {
         $stmt = Database::connection()->prepare(
-            'INSERT INTO users (name, email, password_hash, role, manager_id, supervisor_id, company_name, document, phone, created_at)
-             VALUES (:name, :email, :password_hash, :role, :manager_id, :supervisor_id, :company_name, :document, :phone, :created_at)'
+            'INSERT INTO users (name, email, password_hash, role, manager_id, supervisor_id, company_name, document, phone, onboarding_status, contract_status, created_at)
+             VALUES (:name, :email, :password_hash, :role, :manager_id, :supervisor_id, :company_name, :document, :phone, :onboarding_status, :contract_status, :created_at)'
         );
 
         $stmt->execute([
@@ -45,6 +45,11 @@ class User
             'company_name' => $data['company_name'] ?? null,
             'document' => $data['document'] ?? null,
             'phone' => $data['phone'] ?? null,
+            // licenciado se auto-cadastrando começa aguardando aprovação; gestor/vendedor
+            // cadastrado pelo licenciado começa com contrato pendente de envio -- ver
+            // AuthController::register() e TeamController::store().
+            'onboarding_status' => $data['onboarding_status'] ?? 'ativo',
+            'contract_status' => $data['contract_status'] ?? 'aprovado',
             'created_at' => date('Y-m-d H:i:s'),
         ]);
 
@@ -146,5 +151,72 @@ class User
         Database::connection()
             ->prepare("UPDATE users SET supervisor_id = ? WHERE id = ? AND role = 'licenciado'")
             ->execute([$supervisorId, $licenciadoId]);
+    }
+
+    /** "Aprovação de cadastros": licenciados que se auto-cadastraram e aguardam liberação. */
+    public static function pendingOnboarding(): array
+    {
+        $stmt = Database::connection()->prepare(
+            "SELECT * FROM users WHERE role = 'licenciado' AND onboarding_status = 'aguardando_aprovacao' ORDER BY created_at ASC"
+        );
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public static function decideOnboarding(int $userId, string $decision, ?string $reason): void
+    {
+        if ($decision === 'aprovado') {
+            Database::connection()
+                ->prepare("UPDATE users SET onboarding_status = 'ativo', onboarding_rejection_reason = NULL WHERE id = ?")
+                ->execute([$userId]);
+        } else {
+            Database::connection()
+                ->prepare("UPDATE users SET onboarding_status = 'reprovado', onboarding_rejection_reason = ? WHERE id = ?")
+                ->execute([$reason, $userId]);
+        }
+    }
+
+    /**
+     * "Aprovar vendedores": Gestor/Vendedor cadastrado por um Licenciado sobe um
+     * contrato assinado (sem ClickSign aqui, upload manual) pra liberar o acesso.
+     * $licenciadoId null (admin) = sem filtro; senão só a equipe direta dele
+     * (manager_id aponta direto pro licenciado, TeamController::store() nunca
+     * encadeia via gestor).
+     */
+    public static function pendingContracts(?int $licenciadoId): array
+    {
+        $sql = "SELECT * FROM users WHERE contract_status = 'aguardando_aprovacao' AND role IN ('gestor', 'vendedor')";
+        $params = [];
+
+        if ($licenciadoId !== null) {
+            $sql .= ' AND manager_id = ?';
+            $params[] = $licenciadoId;
+        }
+
+        $sql .= ' ORDER BY created_at ASC';
+
+        $stmt = Database::connection()->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    public static function updateContract(int $userId, string $path): void
+    {
+        Database::connection()
+            ->prepare("UPDATE users SET contract_path = ?, contract_status = 'aguardando_aprovacao', contract_rejection_reason = NULL WHERE id = ?")
+            ->execute([$path, $userId]);
+    }
+
+    public static function decideContract(int $userId, string $decision, ?string $reason): void
+    {
+        if ($decision === 'aprovado') {
+            Database::connection()
+                ->prepare("UPDATE users SET contract_status = 'aprovado', contract_rejection_reason = NULL WHERE id = ?")
+                ->execute([$userId]);
+        } else {
+            Database::connection()
+                ->prepare("UPDATE users SET contract_status = 'reprovado', contract_rejection_reason = ? WHERE id = ?")
+                ->execute([$reason, $userId]);
+        }
     }
 }

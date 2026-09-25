@@ -69,6 +69,9 @@ class TeamController
                 'role' => $role,
                 'manager_id' => $user['id'],
                 'phone' => trim($_POST['phone'] ?? '') ?: null,
+                // Precisa subir um contrato assinado e ser aprovado antes de
+                // fechar pedidos -- ver ContractController / "Aprovar vendedores".
+                'contract_status' => 'pendente_envio',
             ]);
         }
 

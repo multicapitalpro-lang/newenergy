@@ -85,6 +85,8 @@ class AuthController
         // Cadastro público sempre cria um Licenciado (dono de rede). Vendedores
         // são cadastrados pelo próprio licenciado em "Minha Equipe", não aqui --
         // mesmo padrão do EcoDiffusore (Licenciado se auto-cadastra, Vendedor não).
+        // Começa "aguardando_aprovacao" -- precisa passar por Aprovação de
+        // Cadastros (Gerente/admin) antes de operar, ver Auth::requireRole().
         User::create([
             'name' => $name,
             'email' => $email,
@@ -92,9 +94,21 @@ class AuthController
             'role' => 'licenciado',
             'company_name' => $companyName,
             'document' => $document,
+            'onboarding_status' => 'aguardando_aprovacao',
         ]);
 
         Auth::attempt($email, $password);
-        Router::redirect('/?bem-vindo=1');
+        Router::redirect('/cadastro/pendente');
+    }
+
+    /** Tela de status pra licenciado logado mas ainda aguardando, ou reprovado na, aprovação de cadastro. */
+    public function pending(): void
+    {
+        $user = Auth::user();
+        if (!$user) {
+            Router::redirect('/login');
+        }
+
+        View::render('auth/pending', ['user' => $user], null);
     }
 }

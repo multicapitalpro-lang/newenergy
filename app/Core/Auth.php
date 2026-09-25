@@ -41,6 +41,14 @@ class Auth
             Router::redirect('/login');
         }
 
+        // Licenciado que se auto-cadastrou e ainda não foi aprovado (ou foi
+        // reprovado) não pode operar nenhuma tela interna, mesmo que o papel
+        // dele passe no check de $roles abaixo -- intercepta aqui, num único
+        // lugar, em vez de checar onboarding_status espalhado pelos controllers.
+        if ($user['role'] === Roles::LICENCIADO && $user['onboarding_status'] !== 'ativo') {
+            Router::redirect('/cadastro/pendente');
+        }
+
         if (!in_array($user['role'], $roles, true)) {
             http_response_code(403);
             require BASE_PATH . '/app/Views/errors/403.php';

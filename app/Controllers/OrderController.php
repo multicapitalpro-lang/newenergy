@@ -134,6 +134,12 @@ class OrderController
     {
         $user = Auth::requireRole(Roles::SELLER_ROLES);
 
+        // Gestor/Vendedor só fecha pedido depois que o contrato assinado dele
+        // for aprovado -- ver ContractController / "Aprovar vendedores".
+        if (in_array($user['role'], Roles::STAFF, true) && $user['contract_status'] !== 'aprovado') {
+            Router::redirect('/meu-contrato?bloqueado=1');
+        }
+
         if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
             Router::redirect('/produtos/' . ($_POST['product_id'] ?? ''));
         }

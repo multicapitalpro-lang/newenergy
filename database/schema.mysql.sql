@@ -16,6 +16,13 @@ CREATE TABLE IF NOT EXISTS users (
     document VARCHAR(32),
     phone VARCHAR(32),
     status VARCHAR(16) NOT NULL DEFAULT 'active',
+    -- Aprovação de cadastro (só licenciado): aguardando_aprovacao | ativo | reprovado
+    onboarding_status VARCHAR(24) NOT NULL DEFAULT 'ativo',
+    onboarding_rejection_reason TEXT,
+    -- Aprovação de contrato (só gestor/vendedor): pendente_envio | aguardando_aprovacao | aprovado | reprovado
+    contract_status VARCHAR(24) NOT NULL DEFAULT 'aprovado',
+    contract_path TEXT,
+    contract_rejection_reason TEXT,
     created_at DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

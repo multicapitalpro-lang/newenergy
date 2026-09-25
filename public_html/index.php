@@ -18,10 +18,13 @@ use App\Controllers\ApprovalController;
 use App\Controllers\AuthController;
 use App\Controllers\CalculatorController;
 use App\Controllers\ClientController;
+use App\Controllers\ContractController;
 use App\Controllers\HomeController;
 use App\Controllers\LeadController;
 use App\Controllers\LeadExtensionController;
 use App\Controllers\LeadRoutingController;
+use App\Controllers\LicenciadoApprovalController;
+use App\Controllers\LicenciadoNetworkController;
 use App\Controllers\GoalController;
 use App\Controllers\OrderController;
 use App\Controllers\PaymentMethodController;
@@ -48,6 +51,7 @@ $router->get('/login', [AuthController::class, 'showLogin']);
 $router->post('/login', [AuthController::class, 'login']);
 $router->get('/cadastro', [AuthController::class, 'showRegister']);
 $router->post('/cadastro', [AuthController::class, 'register']);
+$router->get('/cadastro/pendente', [AuthController::class, 'pending'], auth: true);
 $router->get('/logout', [AuthController::class, 'logout']);
 
 $router->get('/minha-equipe', [TeamController::class, 'index'], auth: true);
@@ -113,5 +117,16 @@ $router->get('/funil', [PerformanceController::class, 'funnel'], auth: true);
 $router->get('/metas', [GoalController::class, 'index'], auth: true);
 $router->post('/metas', [GoalController::class, 'store'], auth: true);
 $router->post('/metas/{id}/excluir', [GoalController::class, 'destroy'], auth: true);
+
+$router->get('/meu-contrato', [ContractController::class, 'show'], auth: true);
+$router->post('/meu-contrato', [ContractController::class, 'upload'], auth: true);
+$router->get('/vendedores/aprovar', [ContractController::class, 'pendingApprovals'], auth: true);
+$router->post('/vendedores/{id}/aprovar', [ContractController::class, 'approve'], auth: true);
+$router->post('/vendedores/{id}/reprovar', [ContractController::class, 'reject'], auth: true);
+
+$router->get('/licenciados', [LicenciadoNetworkController::class, 'index'], auth: true);
+$router->get('/licenciados/aprovacoes', [LicenciadoApprovalController::class, 'index'], auth: true);
+$router->post('/licenciados/{id}/aprovar', [LicenciadoApprovalController::class, 'approve'], auth: true);
+$router->post('/licenciados/{id}/reprovar', [LicenciadoApprovalController::class, 'reject'], auth: true);
 
 $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);

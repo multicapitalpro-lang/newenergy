@@ -23,6 +23,42 @@ foreach (array_filter(array_map('trim', explode(";\n", $schema))) as $statement)
 
 echo "Schema aplicado ({$driver}).\n";
 
+/**
+ * CREATE TABLE IF NOT EXISTS não adiciona colunas a uma tabela que já existe
+ * -- pra evoluir `users` (que já tem dados reais em produção) sem precisar de
+ * um script de migração separado, checa se a coluna existe e só então altera.
+ */
+function ensureColumn(\PDO $pdo, string $driver, string $table, string $column, string $sqliteType, string $mysqlType): void
+{
+    if ($driver === 'mysql') {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?'
+        );
+        $stmt->execute([$table, $column]);
+        $exists = (int) $stmt->fetchColumn() > 0;
+        $type = $mysqlType;
+    } else {
+        $exists = false;
+        foreach ($pdo->query("PRAGMA table_info($table)")->fetchAll(\PDO::FETCH_ASSOC) as $col) {
+            if ($col['name'] === $column) {
+                $exists = true;
+                break;
+            }
+        }
+        $type = $sqliteType;
+    }
+
+    if (!$exists) {
+        $pdo->exec("ALTER TABLE $table ADD COLUMN $column $type");
+    }
+}
+
+ensureColumn($pdo, $driver, 'users', 'onboarding_status', "TEXT NOT NULL DEFAULT 'ativo'", "VARCHAR(24) NOT NULL DEFAULT 'ativo'");
+ensureColumn($pdo, $driver, 'users', 'onboarding_rejection_reason', 'TEXT', 'TEXT');
+ensureColumn($pdo, $driver, 'users', 'contract_status', "TEXT NOT NULL DEFAULT 'aprovado'", "VARCHAR(24) NOT NULL DEFAULT 'aprovado'");
+ensureColumn($pdo, $driver, 'users', 'contract_path', 'TEXT', 'TEXT');
+ensureColumn($pdo, $driver, 'users', 'contract_rejection_reason', 'TEXT', 'TEXT');
+
 // Seed: um exemplo de cada papel da hierarquia completa, só se vazio.
 $userCount = (int) $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
 if ($userCount === 0) {

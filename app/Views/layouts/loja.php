@@ -54,6 +54,15 @@ $categories = \App\Models\Product::categories();
                 <a href="/tabela-precos">💲 Tabela de preços</a>
                 <a href="/config-pagamentos">💳 Pagamentos</a>
             <?php endif; ?>
+            <?php if (in_array($currentUser['role'], ['admin', 'gerente'], true)): ?>
+                <a href="/licenciados">🌐 Expansão</a>
+            <?php endif; ?>
+            <?php if (in_array($currentUser['role'], ['admin', 'licenciado'], true)): ?>
+                <a href="/vendedores/aprovar">📄 Aprovar vendedores</a>
+            <?php endif; ?>
+            <?php if (in_array($currentUser['role'], ['gestor', 'vendedor'], true)): ?>
+                <a href="/meu-contrato">📎 Meu Contrato</a>
+            <?php endif; ?>
             <a href="/catalogo">🔋 Catálogo</a>
         </div>
     <?php else: ?>
