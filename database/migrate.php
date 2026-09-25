@@ -1,20 +1,27 @@
 <?php
 
 define('BASE_PATH', dirname(__DIR__));
-require BASE_PATH . '/config/app.php';
+require BASE_PATH . '/app/Core/Config.php';
+require BASE_PATH . '/app/Core/Database.php';
 
-$config = require BASE_PATH . '/config/app.php';
-$sqlitePath = $config['db']['sqlite_path'];
+use App\Core\Config;
+use App\Core\Database;
 
-$isNew = !file_exists($sqlitePath);
-$pdo = new PDO('sqlite:' . $sqlitePath);
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$pdo->exec('PRAGMA foreign_keys = ON');
+$driver = Config::get('db')['driver'] ?? 'sqlite';
+$pdo = Database::connection();
 
-$schema = file_get_contents(BASE_PATH . '/database/schema.sql');
-$pdo->exec($schema);
+$schemaFile = $driver === 'mysql' ? 'schema.mysql.sql' : 'schema.sql';
+$schema = file_get_contents(BASE_PATH . '/database/' . $schemaFile);
 
-echo ($isNew ? "Banco criado" : "Schema atualizado") . " em {$sqlitePath}\n";
+// MySQL não aceita várias statements de uma vez via PDO::exec com segurança
+// -- separa por ";\n" (nenhuma das nossas CREATE TABLE tem ";" no meio).
+foreach (array_filter(array_map('trim', explode(";\n", $schema))) as $statement) {
+    if ($statement !== '') {
+        $pdo->exec($statement);
+    }
+}
+
+echo "Schema aplicado ({$driver}).\n";
 
 // Seed: um exemplo de cada papel da hierarquia completa, só se vazio.
 $userCount = (int) $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
